@@ -7,8 +7,9 @@
 #include <stdexcept>
 
 #include "GPIOPinDetail.h"
-#include "../Assert.h"
-#include "../Config.h"
+#include "src/Assert.h"
+#include "src/Config.h"
+#include "src/Machine/EventPin.h"
 
 namespace Pins {
     std::vector<bool> GPIOPinDetail::_claimed(nGPIOPins, false);
@@ -70,6 +71,8 @@ namespace Pins {
             case 34:  // Input only pins
             case 35:
             case 36:
+            case 37:
+            case 38:
             case 39:
                 return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::ADC | PinCapabilities::ISR | PinCapabilities::UART;
                 break;
@@ -98,14 +101,14 @@ namespace Pins {
                 if (_capabilities.has(PinCapabilities::PullUp)) {
                     _attributes = _attributes | PinAttributes::PullUp;
                 } else {
-                    log_warn(toString() << " does not support :pu attribute");
+                    log_config_error(toString() << " does not support :pu attribute");
                 }
 
             } else if (opt.is("pd")) {
                 if (_capabilities.has(PinCapabilities::PullDown)) {
                     _attributes = _attributes | PinAttributes::PullDown;
                 } else {
-                    log_warn(toString() << " does not support :pd attribute");
+                    log_config_error(toString() << " does not support :pd attribute");
                 }
             } else if (opt.is("low")) {
                 _attributes = _attributes | PinAttributes::ActiveLow;
@@ -169,14 +172,15 @@ namespace Pins {
                   false);  // We do not have an OpenDrain attribute yet
     }
 
-    void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(_attributes.has(PinAttributes::ISR), "Pin %s does not support interrupts", toString().c_str());
-        ::attachInterruptArg(_index, callback, arg, mode);
+    // This is a callback from the low-level GPIO driver that is invoked after
+    // registerEvent() has been called and the pin becomes active.
+    void GPIOPinDetail::gpioAction(int gpio_num, void* arg, bool active) {
+        EventPin* obj = static_cast<EventPin*>(arg);
+        obj->trigger(active);
     }
 
-    void GPIOPinDetail::detachInterrupt() {
-        Assert(_attributes.has(PinAttributes::ISR), "Pin %s does not support interrupts");
-        ::detachInterrupt(_index);
+    void GPIOPinDetail::registerEvent(EventPin* obj) {
+        gpio_set_action(_index, gpioAction, (void*)obj, _attributes.has(Pin::Attr::ActiveLow));
     }
 
     std::string GPIOPinDetail::toString() {

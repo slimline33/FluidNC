@@ -44,7 +44,7 @@ namespace Configuration {
                 value->group(*this);
             } else {
                 if (newValue_ == nullptr) {
-                    log_to(out_, "/", setting_ << ":");
+                    log_stream(out_, "/" << setting_ << ":");
                     Configuration::Generator generator(out_, 1);
                     value->group(generator);
                     isHandled_ = true;
@@ -62,25 +62,25 @@ namespace Configuration {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
-                log_to(out_, "", setting_prefix() << (value ? "true" : "false"));
+                log_stream(out_, setting_prefix() << (value ? "true" : "false"));
             } else {
                 value = (!strcasecmp(newValue_, "true") || !strcasecmp(newValue_, "yes") || !strcasecmp(newValue_, "1"));
             }
         }
     }
 
-    void RuntimeSetting::item(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) {
+    void RuntimeSetting::item(const char* name, int32_t& value, const int32_t minValue, const int32_t maxValue) {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
-                log_to(out_, "", setting_prefix() << value);
+                log_stream(out_, setting_prefix() << value);
             } else {
                 value = atoi(newValue_);
             }
         }
     }
 
-    void RuntimeSetting::item(const char* name, uint32_t& value, uint32_t minValue, uint32_t maxValue) {
+    void RuntimeSetting::item(const char* name, uint32_t& value, const uint32_t minValue, const uint32_t maxValue) {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
@@ -96,12 +96,12 @@ namespace Configuration {
         }
     }
 
-    void RuntimeSetting::item(const char* name, float& value, float minValue, float maxValue) {
+    void RuntimeSetting::item(const char* name, float& value, const float minValue, const float maxValue) {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
                 // XXX precision
-                log_to(out_, "", setting_prefix() << value);
+                log_stream(out_, setting_prefix() << value);
             } else {
                 char* floatEnd;
                 value = strtof(newValue_, &floatEnd);
@@ -109,24 +109,24 @@ namespace Configuration {
         }
     }
 
-    void RuntimeSetting::item(const char* name, std::string& value, int minLength, int maxLength) {
+    void RuntimeSetting::item(const char* name, std::string& value, const int minLength, const int maxLength) {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
-                log_to(out_, "", setting_prefix() << value);
+                log_stream(out_, setting_prefix() << value);
             } else {
                 value = newValue_;
             }
         }
     }
 
-    void RuntimeSetting::item(const char* name, int& value, EnumItem* e) {
+    void RuntimeSetting::item(const char* name, int& value, const EnumItem* e) {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
                 for (auto e2 = e; e2->name; ++e2) {
                     if (e2->value == value) {
-                        log_to(out_, "", setting_prefix() << e2->name);
+                        log_stream(out_, setting_prefix() << e2->name);
                         return;
                     }
                 }
@@ -165,7 +165,7 @@ namespace Configuration {
             isHandled_ = true;
             if (newValue_ == nullptr) {
                 if (value.size() == 0) {
-                    log_to(out_, "None");
+                    log_string(out_, "None");
                 } else {
                     LogStream msg(out_, "");
                     msg << setting_prefix();
@@ -210,7 +210,7 @@ namespace Configuration {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
-                log_to(out_, "", setting_prefix() << IP_string(value));
+                log_stream(out_, setting_prefix() << IP_string(value));
             } else {
                 IPAddress ip;
                 if (!ip.fromString(newValue_)) {
@@ -225,9 +225,9 @@ namespace Configuration {
         if (is(name)) {
             isHandled_ = true;
             if (newValue_ == nullptr) {
-                log_to(out_, "", setting_prefix() << value.name());
+                log_stream(out_, setting_prefix() << value.name());
             } else {
-                log_to(out_, "Runtime setting of Pin objects is not supported");
+                log_string(out_, "Runtime setting of Pin objects is not supported");
                 // auto parsed = Pin::create(newValue);
                 // value.swap(parsed);
             }

@@ -6,9 +6,7 @@
 #include "src/System.h"                 // sys
 #include "src/Machine/MachineConfig.h"  // config
 
-Macro::Macro(const char* name) : _name(name) {}
-
-void MacroEvent::run(void* arg) {
+void MacroEvent::run(void* arg) const {
     config->_macros->_macro[_num].run();
 }
 
@@ -18,13 +16,13 @@ Macro Macros::_after_homing                  = { "after_homing" };
 Macro Macros::_after_reset                   = { "after_reset" };
 Macro Macros::_after_unlock                  = { "after_unlock" };
 
-MacroEvent macro0Event { 0 };
-MacroEvent macro1Event { 1 };
-MacroEvent macro2Event { 2 };
-MacroEvent macro3Event { 3 };
+const MacroEvent macro0Event { 0 };
+const MacroEvent macro1Event { 1 };
+const MacroEvent macro2Event { 2 };
+const MacroEvent macro3Event { 3 };
 
 // clang-format off
-std::map<std::string, Cmd> overrideCodes = {
+const std::map<std::string, Cmd> overrideCodes = {
     { "fr", Cmd::FeedOvrReset },
     { "f>", Cmd::FeedOvrCoarsePlus },
     { "f<", Cmd::FeedOvrCoarseMinus },
@@ -50,16 +48,17 @@ Cmd findOverride(std::string name) {
     return it == overrideCodes.end() ? Cmd::None : it->second;
 }
 
-bool Macro::run() {  // return true if the macro was run
-    const std::string& s = _gcode;
+bool Macro::run() {
     if (_gcode == "") {
         return false;
     }
 
-    if (sys.state != State::Idle) {
+    if (!state_is(State::Idle)) {
         log_error("Macro can only be used in idle state");
         return false;
     }
+
+    const std::string& s = _gcode;
 
     log_info("Running macro " << _name << ": " << _gcode);
     char c;

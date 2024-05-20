@@ -7,6 +7,7 @@
 // #define true 1
 
 #include <cstdint>
+#include <string_view>
 #include "Logging.h"
 #include "Driver/delay_usecs.h"
 
@@ -59,7 +60,7 @@ bool read_float(const char* line, size_t* char_counter, float* float_ptr);
 void delay_us(int32_t microseconds);
 
 // Delay while checking for realtime characters and other events
-bool delay_msec(uint32_t milliseconds, DwellMode mode);
+bool delay_msec(uint32_t milliseconds, DwellMode mode = DwellMode::Dwell);
 
 // Delay without checking for realtime events.  Use only for short delays
 void delay_ms(uint16_t ms);
@@ -84,21 +85,15 @@ const char* to_hex(uint32_t n);
 
 bool  char_is_numeric(char value);
 char* trim(char* value);
-
-template <class T>
-void swap(T& a, T& b) {
-    T c(a);
-    a = b;
-    b = c;
-}
+void  trim(std::string_view& sv);
 
 template <typename T>
-T myMap(T x, T in_min, T in_max, T out_min, T out_max) {  // DrawBot_Badge
+T myMap(T x, const T in_min, const T in_max, T out_min, T out_max) {  // DrawBot_Badge
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 template <typename T>
-T myConstrain(T in, T min, T max) {
+T myConstrain(T in, const T min, const T max) {
     if (in < min) {
         return min;
     }
@@ -109,14 +104,14 @@ T myConstrain(T in, T min, T max) {
 }
 
 template <typename T>
-T mapConstrain(T x, T in_min, T in_max, T out_min, T out_max) {
+T mapConstrain(T x, const T in_min, const T in_max, T out_min, T out_max) {
     x = myConstrain(x, in_min, in_max);
     return myMap(x, in_min, in_max, out_min, out_max);
 }
 
 // constrain a value and issue a message. Returns true is the value was OK
 template <typename T>
-bool constrain_with_message(T& value, T min, T max, const char* name = "") {
+bool constrain_with_message(T& value, const T min, const T max, const char* name = "") {
     if (value < min || value > max) {
         log_warn(name << " value " << value << " constrained to range (" << min << "," << max << ")");
         value = myConstrain(value, min, max);
